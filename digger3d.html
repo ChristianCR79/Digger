@@ -241,7 +241,7 @@ scene.background = new THREE.Color(COL.bg);
 
 const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 80);
 const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
-renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
 renderer.setSize(stage.clientWidth, stage.clientHeight);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.shadowMap.enabled = true;
@@ -263,7 +263,7 @@ scene.add(ambient);
 const key = new THREE.DirectionalLight(0xffffff, 2.35);
 key.position.set(3.2, 6.2, 4.4);
 key.castShadow = true;
-key.shadow.mapSize.set(1024, 1024);
+key.shadow.mapSize.set(512, 512);
 key.shadow.camera.near = 1;
 key.shadow.camera.far = 16;
 key.shadow.camera.left = -5;
@@ -291,7 +291,11 @@ const mats = {
   window: makeMat('#EFFFFF', 1),
   goal: makeMat(COL.yellow, 1),
   cyanGhost: makeMat(COL.cyan, 0.34),
-  magentaGhost: makeMat(COL.magenta, 0.34)
+  magentaGhost: makeMat(COL.magenta, 0.34),
+  edge: new THREE.LineBasicMaterial({ color: 0x100b00, transparent: true, opacity: 0.9, linewidth: 2 }),
+  edgeGhost: new THREE.LineBasicMaterial({ color: 0x100b00, transparent: true, opacity: 0.62, linewidth: 2 }),
+  level: new THREE.LineBasicMaterial({ color: 0x211900, transparent: true, opacity: 0.68, linewidth: 1.5 }),
+  levelGhost: new THREE.LineBasicMaterial({ color: 0x211900, transparent: true, opacity: 0.5, linewidth: 1.5 })
 };
 
 const game = {
@@ -331,8 +335,8 @@ function init() {
   const start = START_CELLS[Math.floor(Math.random() * START_CELLS.length)];
   const mirror = { x: GRID - 1 - start.x, y: GRID - 1 - start.y };
   game.players = [
-    { id:0, x:start.x, y:start.y, color: COL.p1, name:'P1', marked: null },
-    { id:1, x:mirror.x, y:mirror.y, color: COL.p2, name:'P2', marked: null }
+    { id:0, x:start.x, y:start.y, color: COL.p1, name:'P1', marked: null, dir: angleToCell(start.x, start.y, GOAL_X, GOAL_Y), digTarget: null },
+    { id:1, x:mirror.x, y:mirror.y, color: COL.p2, name:'P2', marked: null, dir: angleToCell(mirror.x, mirror.y, GOAL_X, GOAL_Y), digTarget: null }
   ];
   game.current = Math.floor(Math.random() * 2);
   game.winner = null;
@@ -382,11 +386,28 @@ function isMarkedHere(p) {
   return p.marked && p.marked.x === p.x && p.marked.y === p.y;
 }
 
+function angleFromDelta(dx, dy) {
+  return Math.atan2(-dy, dx);
+}
+
+function angleToCell(fromX, fromY, toX, toY) {
+  const dx = toX - fromX;
+  const dy = toY - fromY;
+  if (dx === 0 && dy === 0) return 0;
+  return angleFromDelta(dx, dy);
+}
+
+function normalizeAngle(a) {
+  return Math.atan2(Math.sin(a), Math.cos(a));
+}
+
 function doMove(tx, ty) {
   if (game.state !== 'playing') return false;
   const p = game.players[game.current];
   if (!isMoveAdjacent(p.x, p.y, tx, ty)) return false;
   if (!canMoveTo(p, tx, ty)) return false;
+  p.dir = angleFromDelta(tx - p.x, ty - p.y);
+  p.digTarget = null;
   p.x = tx; p.y = ty;
   p.marked = { x: tx, y: ty };
   game.hover = null;
@@ -400,6 +421,7 @@ function doDigSelf() {
   if (game.state !== 'playing') return false;
   const p = game.players[game.current];
   if (getZ(p) <= 0 || !isMarkedHere(p)) return false;
+  p.digTarget = { x: p.x, y: p.y, until: performance.now() + 700 };
   game.heights[p.x][p.y]--;
   p.marked = null;
   game.shakeUntil = performance.now() + 180;
@@ -408,6 +430,7 @@ function doDigSelf() {
   endTurn();
   updateHud();
   rebuildScene();
+  setTimeout(rebuildScene, 720);
   return true;
 }
 
@@ -417,6 +440,8 @@ function doDigCell(tx, ty) {
   if (!isMarkedHere(p)) return false;
   if (!isDigAdjacent(p.x, p.y, tx, ty)) return false;
   if (!canDigCell(tx, ty, p)) return false;
+  p.dir = angleToCell(p.x, p.y, tx, ty);
+  p.digTarget = { x: tx, y: ty, until: performance.now() + 700 };
   game.heights[tx][ty]--;
   p.marked = null;
   game.shakeUntil = performance.now() + 180;
@@ -425,6 +450,7 @@ function doDigCell(tx, ty) {
   endTurn();
   updateHud();
   rebuildScene();
+  setTimeout(rebuildScene, 720);
   return true;
 }
 
@@ -575,23 +601,23 @@ function drawBlocks() {
       mesh.receiveShadow = true;
       world.add(mesh);
 
-      const edgeOpacity = Array.isArray(mat) && mat[0].transparent ? mat[0].opacity : 0.58;
+      const ghosted = Array.isArray(mat) && mat[0].transparent;
       const edges = new THREE.LineSegments(
         new THREE.EdgesGeometry(geom),
-        new THREE.LineBasicMaterial({ color: 0x1a1300, transparent: true, opacity: edgeOpacity })
+        ghosted ? mats.edgeGhost : mats.edge
       );
       edges.position.copy(mesh.position);
       world.add(edges);
 
-      drawLevelLines(x, y, h, edgeOpacity);
+      drawLevelLines(x, y, h, ghosted);
     }
   }
 }
 
-function drawLevelLines(x, y, h, opacity) {
+function drawLevelLines(x, y, h, ghosted) {
   const base = cellToWorld(x, y, 0);
   const half = (CELL - GAP) / 2;
-  const mat = new THREE.LineBasicMaterial({ color: 0x2b2300, transparent: true, opacity: Math.min(opacity, 0.5) });
+  const mat = ghosted ? mats.levelGhost : mats.level;
   for (let i = 1; i < h; i++) {
     const yy = i * SLAB_H;
     const pts = [
@@ -658,7 +684,7 @@ function drawPlayers() {
     const h = getZ(p);
     const pos = cellToWorld(p.x, p.y, h * SLAB_H + 0.04);
     g.position.copy(pos);
-    g.rotation.y = -cameraAngle + (p.id === 0 ? -0.35 : 0.35);
+    g.rotation.y = p.dir || 0;
     g.userData = { kind: 'player', id: p.id };
 
     const topMat = p.id === 0 ? mats.p1 : mats.p2;
@@ -685,35 +711,41 @@ function drawPlayers() {
     body.receiveShadow = true;
     g.add(body);
 
+    const upper = new THREE.Group();
+    upper.position.y = 0.45;
+    upper.rotation.y = getTurretRotation(p, g.rotation.y);
+    g.add(upper);
+
     const turret = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.23, 0.12, 12), darkMat);
-    turret.position.y = 0.45;
     turret.castShadow = true;
-    g.add(turret);
+    upper.add(turret);
 
     const cab = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.32, 0.3), topMat);
-    cab.position.set(-0.05, 0.66, -0.02);
+    cab.position.set(-0.05, 0.21, -0.02);
     cab.castShadow = true;
     cab.receiveShadow = true;
-    g.add(cab);
+    upper.add(cab);
 
-    const windowFront = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.11, 0.012), mats.window);
-    windowFront.position.set(-0.05, 0.72, -0.176);
-    g.add(windowFront);
+    const windowFront = new THREE.Mesh(new THREE.BoxGeometry(0.012, 0.11, 0.18), mats.window);
+    windowFront.position.set(0.106, 0.27, -0.02);
+    upper.add(windowFront);
 
     const windowSide = new THREE.Mesh(new THREE.BoxGeometry(0.012, 0.11, 0.16), mats.window);
-    windowSide.position.set(-0.206, 0.72, -0.02);
-    g.add(windowSide);
+    windowSide.position.set(-0.206, 0.27, -0.02);
+    upper.add(windowSide);
 
-    const arm = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.52, 0.08), darkMat);
-    arm.position.set(0.18, 0.85, 0.02);
-    arm.rotation.z = -0.42;
+    const activeDigTarget = getActiveDigTarget(p);
+    const reach = activeDigTarget && !(activeDigTarget.x === p.x && activeDigTarget.y === p.y) ? 0.72 : 0.48;
+    const arm = new THREE.Mesh(new THREE.BoxGeometry(reach, 0.09, 0.08), darkMat);
+    arm.position.set(0.18 + reach / 2, 0.38 - reach * 0.14, 0.02);
+    arm.rotation.z = -0.28;
     arm.castShadow = true;
-    g.add(arm);
+    upper.add(arm);
 
     const bucket = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.12, 0.16), mats.grey);
-    bucket.position.set(0.38, 0.6, 0.04);
+    bucket.position.set(0.32 + reach, 0.23 - reach * 0.28, 0.04);
     bucket.castShadow = true;
-    g.add(bucket);
+    upper.add(bucket);
 
     if (game.state === 'playing' && p.id === game.current) {
       const marker = new THREE.Mesh(new THREE.ConeGeometry(0.14, 0.25, 3), mats.goal);
@@ -724,6 +756,23 @@ function drawPlayers() {
 
     world.add(g);
   }
+}
+
+function getActiveDigTarget(p) {
+  if (game.state === 'playing' && p.id === game.current && game.hover) {
+    if (game.hover.type === 'dig-cell') return { x: game.hover.tx, y: game.hover.ty };
+    if (game.hover.type === 'dig-self') return { x: p.x, y: p.y };
+  }
+  if (p.digTarget && performance.now() < p.digTarget.until) {
+    return p.digTarget;
+  }
+  return null;
+}
+
+function getTurretRotation(p, baseRotation) {
+  const target = getActiveDigTarget(p);
+  if (!target || (target.x === p.x && target.y === p.y)) return 0;
+  return normalizeAngle(angleToCell(p.x, p.y, target.x, target.y) - baseRotation);
 }
 
 function pickAction(clientX, clientY) {

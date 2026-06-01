@@ -3,26 +3,25 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-<meta name="theme-color" content="#050505">
-<title>DIGGER 3D</title>
+<meta name="theme-color" content="#f7f0dc">
+<title>DIGGER</title>
 <style>
   :root {
-    --cyan: #00E5FF;
-    --cyan-d: #00838F;
-    --magenta: #FF00AA;
-    --magenta-d: #880057;
-    --yellow: #FFE500;
-    --yellow-d: #806600;
-    --black: #000000;
-    --white: #FFFFFF;
-    --bg: #050505;
+    --turquoise: #2DC1BB;
+    --turquoise-d: #177E7C;
+    --yellow: #F8AE35;
+    --yellow-d: #C77C13;
+    --ink: #1D1B18;
+    --cream: #F7F0DC;
+    --paper: #F7F0DC;
+    --bg: #F7F0DC;
   }
   *, *::before, *::after { box-sizing: border-box; }
   html, body { margin: 0; min-height: 100%; overflow: hidden; }
   body {
     background: var(--bg);
-    color: var(--white);
-    font-family: 'SF Mono', 'Menlo', 'Consolas', monospace;
+    color: var(--ink);
+    font-family: 'Arial Black', 'Avenir Next Heavy', 'Arial Narrow', sans-serif;
     -webkit-font-smoothing: antialiased;
     overscroll-behavior: none;
     touch-action: none;
@@ -34,76 +33,85 @@
     flex-direction: column;
     min-height: 100vh;
     min-height: 100dvh;
-    max-width: 720px;
+    max-width: 760px;
     margin: 0 auto;
-    padding: 10px;
-    gap: 8px;
+    padding: 8px;
+    gap: 6px;
   }
   h1 {
-    font-size: 22px;
-    letter-spacing: 10px;
-    color: var(--white);
-    margin: 0;
+    font-size: 24px;
+    letter-spacing: 2px;
+    color: var(--turquoise);
+    margin: 2px 0 0;
     text-align: center;
     font-weight: 900;
+    line-height: 1;
+    text-shadow: 3px 3px 0 var(--ink);
+    transform: skew(-6deg);
   }
-  h1 .c { color: var(--cyan); }
-  h1 .m { color: var(--magenta); }
+  h1 .c { color: var(--turquoise); }
+  h1 .m { color: var(--turquoise); }
   h1 .y { color: var(--yellow); }
-  #hud { display: flex; gap: 6px; }
-  .pbadge {
-    flex: 1;
-    padding: 8px 10px;
-    background: var(--black);
-    border: 2px solid var(--white);
-    font-size: 11px;
-    letter-spacing: 1px;
-    font-weight: 700;
+  .brand-logo {
+    display: block;
+    width: min(154px, 42vw);
+    height: auto;
+    margin: 0 auto;
+  }
+  #menu .brand-logo {
+    width: min(360px, 78vw);
+    margin-bottom: 24px;
+  }
+  .title-art {
+    display: block;
+    width: min(390px, 88vw);
+    max-height: 54vh;
+    object-fit: contain;
+    margin: 0 auto 20px;
+    filter: drop-shadow(5px 6px 0 var(--ink));
+  }
+  #hud {
     display: flex;
+    justify-content: center;
+    min-height: 34px;
+  }
+  .pbadge {
+    display: none;
     align-items: center;
-    gap: 8px;
-    min-height: 36px;
+    justify-content: center;
   }
-  .pbadge.p1 { border-color: var(--cyan); color: var(--cyan); }
-  .pbadge.p2 { border-color: var(--magenta); color: var(--magenta); }
-  .pbadge.active.p1 { background: var(--cyan); color: var(--black); }
-  .pbadge.active.p2 { background: var(--magenta); color: var(--black); }
-  .pbadge .swatch {
-    width: 14px;
-    height: 14px;
-    border: 2px solid var(--white);
-    flex-shrink: 0;
+  .pbadge.active {
+    display: flex;
   }
-  .pbadge.p1 .swatch { background: var(--cyan); }
-  .pbadge.p2 .swatch { background: var(--magenta); }
-  #message {
-    font-size: 12px;
-    color: var(--yellow);
-    min-height: 18px;
-    text-align: center;
-    letter-spacing: 1.5px;
+  .action-icons {
+    display: flex;
+    gap: 3px;
+    align-items: center;
+  }
+  .action-icon {
+    display: none;
+  }
+  .pbadge.active.can-move .action-icon.move,
+  .pbadge.active.can-dig .action-icon.dig {
+    display: block;
+  }
+  .action-icon img {
+    display: block;
+    width: 48px;
+    height: auto;
+    filter: drop-shadow(2px 2px 0 var(--ink));
   }
   #stage {
     position: relative;
     flex: 1;
-    min-height: 420px;
-    background: var(--black);
-    border: 2px solid var(--white);
-    overflow: hidden;
+    min-height: 0;
+    margin: 0 -8px -8px;
   }
   #stage canvas {
     display: block;
     width: 100%;
     height: 100%;
     touch-action: none;
-  }
-  #help {
-    font-size: 10px;
-    color: #888;
-    text-align: center;
-    padding: 4px;
-    line-height: 1.5;
-    letter-spacing: 0.5px;
   }
   #menu, #gameover {
     position: fixed;
@@ -118,10 +126,11 @@
   }
   #menu h1, #gameover h1 {
     font-size: clamp(40px, 12vw, 64px);
-    letter-spacing: clamp(8px, 3vw, 16px);
+    letter-spacing: 4px;
+    text-shadow: 5px 5px 0 var(--ink);
   }
   .menu-intro {
-    color: var(--white);
+    color: var(--ink);
     text-align: center;
     font-size: 13px;
     line-height: 1.8;
@@ -129,54 +138,59 @@
     margin: 20px 0 32px;
     letter-spacing: 0.5px;
   }
-  .menu-intro .c { color: var(--cyan); font-weight: 700; }
-  .menu-intro .m { color: var(--magenta); font-weight: 700; }
+  .menu-intro .c { color: var(--turquoise); font-weight: 900; }
+  .menu-intro .m { color: var(--turquoise); font-weight: 900; }
   .menu-intro .y { color: var(--yellow); font-weight: 700; }
   .menu-btn {
     padding: 18px 28px;
     font-family: inherit;
     font-size: 15px;
-    background: var(--black);
-    color: var(--white);
-    border: 2px solid var(--white);
-    margin: 4px;
+    background: var(--cream);
+    color: var(--ink);
+    border: 3px solid var(--ink);
+    border-radius: 999px;
+    margin: 6px;
     cursor: pointer;
-    letter-spacing: 3px;
+    letter-spacing: 2px;
     font-weight: 900;
     min-width: 260px;
+    box-shadow: 6px 7px 0 var(--ink);
+    transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease;
   }
-  .menu-btn.c { border-color: var(--cyan); color: var(--cyan); }
-  .menu-btn.m { border-color: var(--magenta); color: var(--magenta); }
-  .menu-btn.y { border-color: var(--yellow); color: var(--yellow); }
-  .menu-btn:hover, .menu-btn:active { background: var(--white); color: var(--black); }
-  .menu-btn.c:hover { background: var(--cyan); color: var(--black); }
-  .menu-btn.m:hover { background: var(--magenta); color: var(--black); }
-  .menu-btn.y:hover { background: var(--yellow); color: var(--black); }
+  .menu-btn.c { background: var(--yellow); }
+  .menu-btn.m { background: var(--turquoise); }
+  .menu-btn.y { background: var(--yellow); }
+  .menu-btn:hover { transform: translate(-1px, -1px); box-shadow: 7px 8px 0 var(--ink); }
+  .menu-btn:active { transform: translate(4px, 5px); box-shadow: 2px 2px 0 var(--ink); }
+  .menu-btn.c:hover { background: var(--yellow-d); color: var(--cream); }
+  .menu-btn.m:hover { background: var(--turquoise-d); color: var(--cream); }
+  .menu-btn.y:hover { background: var(--yellow); color: var(--ink); }
   .hidden { display: none !important; }
 </style>
 </head>
 <body>
 
 <div id="wrap">
-  <h1><span class="c">D</span>I<span class="y">G</span><span class="m">G</span>ER <span class="y">3D</span></h1>
+  <img class="brand-logo" src="digger_logo.svg" alt="Digger">
   <div id="hud">
-    <div id="p1badge" class="pbadge p1"><span class="swatch"></span><span id="p1text">P1 z=9</span></div>
-    <div id="p2badge" class="pbadge p2"><span class="swatch"></span><span id="p2text">P2 z=9</span></div>
+    <div id="p1badge" class="pbadge p1">
+      <span class="action-icons" aria-hidden="true">
+        <span class="action-icon move"><img src="move_yellow.svg" alt=""></span>
+        <span class="action-icon dig"><img src="digg_yellow.svg" alt=""></span>
+      </span>
+    </div>
+    <div id="p2badge" class="pbadge p2">
+      <span class="action-icons" aria-hidden="true">
+        <span class="action-icon move"><img src="move_torquis.svg" alt=""></span>
+        <span class="action-icon dig"><img src="digg_torquis.svg" alt=""></span>
+      </span>
+    </div>
   </div>
-  <div id="message">&nbsp;</div>
   <div id="stage"></div>
-  <div id="help">
-    Ziel: <span style="color:var(--yellow)">Mitte auf Ebene 0</span> · Fahren/Baggern max. 1 Ebene · Ziehen dreht die Kamera
-  </div>
 </div>
 
 <div id="menu">
-  <h1><span class="c">D</span>I<span class="y">G</span><span class="m">G</span>ER <span class="y">3D</span></h1>
-  <div class="menu-intro">
-    <span class="y">Echte 3D-Variante.</span><br><br>
-    Fahren bleibt gerade. Nach dem Fahren darfst du das markierte Feld oder ein Nachbarfeld, auch diagonal, baggern. Max. 1 Ebene Höhenunterschied.<br><br>
-    Kamera per Ziehen drehen. Kein Zoom.
-  </div>
+  <img class="title-art" src="title.png" alt="Digger - grab it your way">
   <button class="menu-btn c" id="hotseatBtn">2 SPIELER</button>
   <button class="menu-btn m" id="aiBtn">VS. COMPUTER</button>
 </div>
@@ -198,21 +212,23 @@
 import * as THREE from 'three';
 
 const COL = {
-  bg: '#000000',
-  blockTop: '#FFE500',
-  blockL: '#C8B400',
-  blockR: '#806600',
-  ground: '#1a1a1a',
-  groundEdge: '#3a3a3a',
-  black: '#000000',
-  white: '#FFFFFF',
-  p1: '#00E5FF',
-  p1Dark: '#00838F',
-  p2: '#FF00AA',
-  p2Dark: '#880057',
-  yellow: '#FFE500',
-  magenta: '#FF00AA',
-  cyan: '#00E5FF'
+  bg: '#F7F0DC',
+  blockTop: '#F7F0DC',
+  blockL: '#F8AE35',
+  blockR: '#C77C13',
+  ground: '#177E7C',
+  groundEdge: '#1D1B18',
+  black: '#1D1B18',
+  white: '#F7F0DC',
+  p1: '#F8AE35',
+  p1Dark: '#C77C13',
+  p2: '#2DC1BB',
+  p2Dark: '#177E7C',
+  red: '#E94B35',
+  redDark: '#A72F24',
+  yellow: '#F8AE35',
+  magenta: '#2DC1BB',
+  cyan: '#F8AE35'
 };
 
 const GRID = 3;
@@ -223,11 +239,22 @@ const CELL = 1.45;
 const GAP = 0.045;
 const SLAB_H = 0.18;
 const BOARD_CENTER = new THREE.Vector3(0, 0.55, 0);
-const CAMERA_RADIUS = 6.7;
-const CAMERA_ELEVATION = 4.8;
+const CAMERA_RADIUS = 7.2;
+const CAMERA_ELEVATION = 5.2;
+let cameraRadius = CAMERA_RADIUS;
+let cameraElevation = CAMERA_ELEVATION;
+let lastFitAngle = NaN;
+let lastFitAspect = NaN;
+const BOARD_FIT_POINTS = [];
+for (const x of [-3.45, 3.45]) {
+  for (const y of [-0.42, 3.18]) {
+    for (const z of [-3.45, 3.45]) {
+      BOARD_FIT_POINTS.push(new THREE.Vector3(x, y, z));
+    }
+  }
+}
 const START_CELLS = [
   { x:0, y:0 }, { x:1, y:0 }, { x:2, y:0 },
-  { x:0, y:1 },             { x:2, y:1 },
   { x:0, y:2 }, { x:1, y:2 }, { x:2, y:2 }
 ];
 const MOVE_DX = [0, 1, 0, -1];
@@ -239,7 +266,7 @@ const stage = document.getElementById('stage');
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(COL.bg);
 
-const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 80);
+const camera = new THREE.PerspectiveCamera(32, 1, 0.1, 80);
 const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
 renderer.setSize(stage.clientWidth, stage.clientHeight);
@@ -247,21 +274,27 @@ renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.12;
+renderer.toneMappingExposure = 1.22;
 stage.appendChild(renderer.domElement);
 
 const raycaster = new THREE.Raycaster();
 const pointerNdc = new THREE.Vector2();
 let cameraAngle = -Math.PI / 4;
 let drag = null;
+let tapTimer = null;
+let lastTap = null;
+const DOUBLE_TAP_MS = 280;
+const DOUBLE_TAP_DIST = 28;
+const MOVE_ANIM_MS = 260;
+const DIG_ANIM_MS = 620;
 
 const world = new THREE.Group();
 scene.add(world);
 
-const ambient = new THREE.AmbientLight(0xffffff, 1.15);
+const ambient = new THREE.AmbientLight(0xf7f0dc, 1.9);
 scene.add(ambient);
-const key = new THREE.DirectionalLight(0xffffff, 2.35);
-key.position.set(3.2, 6.2, 4.4);
+const key = new THREE.DirectionalLight(0xffffff, 1.65);
+key.position.set(3.5, 6.6, 4.2);
 key.castShadow = true;
 key.shadow.mapSize.set(512, 512);
 key.shadow.camera.near = 1;
@@ -271,31 +304,42 @@ key.shadow.camera.right = 5;
 key.shadow.camera.top = 5;
 key.shadow.camera.bottom = -5;
 scene.add(key);
-const rim = new THREE.DirectionalLight(0x00e5ff, 0.65);
+const rim = new THREE.DirectionalLight(0xffb12b, 0.62);
 rim.position.set(-4, 3, -3);
 scene.add(rim);
 
 const mats = {
   block: makeBlockMats(1),
-  blockGhost: makeBlockMats(0.42),
-  ground: makeMat('#151515', 1),
-  groundTop: makeMat('#242424', 1),
+  blockGhost: makeBlockMats(0.72),
+  goalBlock: makeGoalBlockMats(1),
+  goalBlockGhost: makeGoalBlockMats(0.72),
   p1: makeMat(COL.p1, 1),
   p1Dark: makeMat(COL.p1Dark, 1),
   p2: makeMat(COL.p2, 1),
   p2Dark: makeMat(COL.p2Dark, 1),
-  black: makeMat('#101010', 1),
-  rubber: makeMat('#050505', 1),
+  black: makeMat(COL.black, 1),
+  rubber: makeMat(COL.black, 1),
   white: makeMat(COL.white, 1),
-  grey: makeMat('#7d8588', 1),
-  window: makeMat('#EFFFFF', 1),
+  grey: makeMat(COL.yellow, 1),
+  metalDark: makeMat(COL.black, 1),
+  metalLight: makeMat(COL.white, 1),
+  hydraulic: makeMat(COL.white, 1),
+  window: makeMat(COL.black, 1),
+  windowDark: makeMat(COL.black, 1),
   goal: makeMat(COL.yellow, 1),
+  outline: makeMat(COL.black, 0.72),
+  outlineGhost: makeMat(COL.black, 0.26),
   cyanGhost: makeMat(COL.cyan, 0.34),
   magentaGhost: makeMat(COL.magenta, 0.34),
-  edge: new THREE.LineBasicMaterial({ color: 0x100b00, transparent: true, opacity: 0.9, linewidth: 2 }),
-  edgeGhost: new THREE.LineBasicMaterial({ color: 0x100b00, transparent: true, opacity: 0.62, linewidth: 2 }),
-  level: new THREE.LineBasicMaterial({ color: 0x211900, transparent: true, opacity: 0.68, linewidth: 1.5 }),
-  levelGhost: new THREE.LineBasicMaterial({ color: 0x211900, transparent: true, opacity: 0.5, linewidth: 1.5 })
+  moveHint: makeFlatMat(COL.cyan, 0.2),
+  moveHintActive: makeFlatMat(COL.cyan, 0.46),
+  digHint: makeFlatMat(COL.magenta, 0.2),
+  digHintActive: makeFlatMat(COL.magenta, 0.46),
+  decalInk: makeFlatMat(COL.black, 0.78),
+  edge: new THREE.LineBasicMaterial({ color: 0x1d1b18, transparent: true, opacity: 0.86, linewidth: 2 }),
+  edgeGhost: new THREE.LineBasicMaterial({ color: 0x1d1b18, transparent: true, opacity: 0.36, linewidth: 2 }),
+  level: new THREE.LineBasicMaterial({ color: 0x1d1b18, transparent: true, opacity: 0.42, linewidth: 1 }),
+  levelGhost: new THREE.LineBasicMaterial({ color: 0x1d1b18, transparent: true, opacity: 0.22, linewidth: 1 })
 };
 
 const game = {
@@ -305,8 +349,9 @@ const game = {
   players: [],
   current: 0,
   winner: null,
-  message: '',
   hover: null,
+  hoverCell: null,
+  hoverZone: null,
   shakeUntil: 0,
   shakeCell: null
 };
@@ -314,7 +359,7 @@ const game = {
 function makeMat(color, opacity) {
   return new THREE.MeshStandardMaterial({
     color,
-    roughness: 0.78,
+    roughness: 0.86,
     metalness: 0.03,
     transparent: opacity < 1,
     opacity,
@@ -322,11 +367,29 @@ function makeMat(color, opacity) {
   });
 }
 
+function makeFlatMat(color, opacity) {
+  return new THREE.MeshBasicMaterial({
+    color,
+    transparent: opacity < 1,
+    opacity,
+    depthWrite: false,
+    side: THREE.DoubleSide
+  });
+}
+
 function makeBlockMats(opacity) {
   const top = makeMat(COL.blockTop, opacity);
-  const sideA = makeMat('#CDB700', opacity);
-  const sideB = makeMat('#8F7200', opacity);
-  const bottom = makeMat('#3A2D00', opacity);
+  const sideA = makeMat(COL.blockL, opacity);
+  const sideB = makeMat(COL.blockR, opacity);
+  const bottom = makeMat(COL.black, opacity);
+  return [sideB, sideA, top, bottom, sideA, sideB];
+}
+
+function makeGoalBlockMats(opacity) {
+  const top = makeMat(COL.red, opacity);
+  const sideA = makeMat(COL.redDark, opacity);
+  const sideB = makeMat(COL.red, opacity);
+  const bottom = makeMat(COL.black, opacity);
   return [sideB, sideA, top, bottom, sideA, sideB];
 }
 
@@ -342,9 +405,10 @@ function init() {
   game.winner = null;
   game.state = 'playing';
   game.hover = null;
+  game.hoverCell = null;
+  game.hoverZone = null;
   game.shakeUntil = 0;
   game.shakeCell = null;
-  game.message = game.players[game.current].name + ' STARTET - erst gerade fahren';
 }
 
 function startGame(mode) {
@@ -406,11 +470,29 @@ function doMove(tx, ty) {
   const p = game.players[game.current];
   if (!isMoveAdjacent(p.x, p.y, tx, ty)) return false;
   if (!canMoveTo(p, tx, ty)) return false;
-  p.dir = angleFromDelta(tx - p.x, ty - p.y);
+  const now = performance.now();
+  const fromX = p.x, fromY = p.y;
+  const fromDir = p.dir || 0;
+  const toDir = angleFromDelta(tx - p.x, ty - p.y);
+  p.dir = toDir;
   p.digTarget = null;
+  p.moveAnim = {
+    fromX,
+    fromY,
+    toX: tx,
+    toY: ty,
+    fromH: game.heights[fromX][fromY],
+    toH: game.heights[tx][ty],
+    fromDir,
+    toDir,
+    start: now,
+    until: now + MOVE_ANIM_MS
+  };
   p.x = tx; p.y = ty;
   p.marked = { x: tx, y: ty };
   game.hover = null;
+  game.hoverCell = null;
+  game.hoverZone = null;
   endTurn();
   updateHud();
   rebuildScene();
@@ -421,12 +503,15 @@ function doDigSelf() {
   if (game.state !== 'playing') return false;
   const p = game.players[game.current];
   if (getZ(p) <= 0 || !isMarkedHere(p)) return false;
-  p.digTarget = { x: p.x, y: p.y, until: performance.now() + 700 };
+  const now = performance.now();
+  p.digTarget = { x: p.x, y: p.y, start: now, until: now + DIG_ANIM_MS };
   game.heights[p.x][p.y]--;
   p.marked = null;
   game.shakeUntil = performance.now() + 180;
   game.shakeCell = { x: p.x, y: p.y };
   game.hover = null;
+  game.hoverCell = null;
+  game.hoverZone = null;
   endTurn();
   updateHud();
   rebuildScene();
@@ -440,13 +525,16 @@ function doDigCell(tx, ty) {
   if (!isMarkedHere(p)) return false;
   if (!isDigAdjacent(p.x, p.y, tx, ty)) return false;
   if (!canDigCell(tx, ty, p)) return false;
+  const now = performance.now();
   p.dir = angleToCell(p.x, p.y, tx, ty);
-  p.digTarget = { x: tx, y: ty, until: performance.now() + 700 };
+  p.digTarget = { x: tx, y: ty, start: now, until: now + DIG_ANIM_MS };
   game.heights[tx][ty]--;
   p.marked = null;
   game.shakeUntil = performance.now() + 180;
   game.shakeCell = { x: tx, y: ty };
   game.hover = null;
+  game.hoverCell = null;
+  game.hoverZone = null;
   endTurn();
   updateHud();
   rebuildScene();
@@ -501,50 +589,101 @@ function endTurn() {
   }
 
   game.current = next;
-  const p = game.players[game.current];
-  game.message = p.name + (isMarkedHere(p) ? ' - Bagger oder Nachbarfeld antippen' : ' - gerade auf Nachbarfeld fahren');
   if (game.mode === 'ai' && game.current === 1) setTimeout(aiMove, 600);
 }
 
 function aiMove() {
   if (game.state !== 'playing' || game.current !== 1) return;
   const p = game.players[game.current];
-
-  if (isMarkedHere(p) && p.x === GOAL_X && p.y === GOAL_Y && getZ(p) > 0) {
-    doDigSelf();
+  const action = chooseAiAction(p);
+  if (action) {
+    performAction(action);
     return;
   }
+  endTurn();
+  updateHud();
+  rebuildScene();
+}
+
+function chooseAiAction(p) {
+  if (isMarkedHere(p) && p.x === GOAL_X && p.y === GOAL_Y && getZ(p) > 0) {
+    return { type: 'dig-self' };
+  }
+
+  const actions = [];
+
   if (isMarkedHere(p)) {
-    let bestDig = null;
-    let bestDigScore = Infinity;
+    if (shouldAiDigSelf(p)) {
+      actions.push({ type: 'dig-self', score: scoreAiDig(p, p.x, p.y, true) });
+    }
     for (let d = 0; d < DIG_DX.length; d++) {
       const tx = p.x + DIG_DX[d], ty = p.y + DIG_DY[d];
       if (!canDigCell(tx, ty, p)) continue;
-      const dist = Math.abs(tx - GOAL_X) + Math.abs(ty - GOAL_Y);
-      const score = dist * 100 + game.heights[tx][ty];
-      if (score < bestDigScore) { bestDigScore = score; bestDig = { tx, ty }; }
-    }
-    if (bestDig) {
-      doDigCell(bestDig.tx, bestDig.ty);
-      return;
-    }
-    if (getZ(p) > 0) {
-      doDigSelf();
-      return;
+      actions.push({ type: 'dig-cell', tx, ty, score: scoreAiDig(p, tx, ty, false) });
     }
   }
 
-  let best = null;
-  let bestScore = Infinity;
   for (let d = 0; d < MOVE_DX.length; d++) {
     const tx = p.x + MOVE_DX[d], ty = p.y + MOVE_DY[d];
     if (!canMoveTo(p, tx, ty)) continue;
-    const dist = Math.abs(tx - GOAL_X) + Math.abs(ty - GOAL_Y);
-    const score = dist * 100 + game.heights[tx][ty];
-    if (score < bestScore) { bestScore = score; best = { tx, ty }; }
+    actions.push({ type: 'move', tx, ty, score: scoreAiMove(p, tx, ty) });
   }
-  if (best) doMove(best.tx, best.ty);
-  else { endTurn(); updateHud(); rebuildScene(); }
+
+  if (!actions.length) return null;
+  actions.sort((a, b) => a.score - b.score);
+  const best = actions[0];
+  const close = actions.filter(a => a.score <= best.score + 8);
+  return close[Math.floor(Math.random() * close.length)];
+}
+
+function scoreAiMove(p, tx, ty) {
+  const dist = Math.abs(tx - GOAL_X) + Math.abs(ty - GOAL_Y);
+  let score = scoreAiPosition(tx, ty, game.heights[GOAL_X][GOAL_Y]);
+  score += Math.abs(game.heights[p.x][p.y] - game.heights[tx][ty]) * 4;
+  score -= countFutureMoves(tx, ty) * 3;
+  if (dist === 0 && game.heights[GOAL_X][GOAL_Y] === 0) score -= 10000;
+  if (dist === 0) score -= 140;
+  if (dist === 1) score -= 35;
+  return score;
+}
+
+function scoreAiDig(p, tx, ty, self) {
+  const centerHeight = game.heights[GOAL_X][GOAL_Y] - (tx === GOAL_X && ty === GOAL_Y ? 1 : 0);
+  const targetDist = Math.abs(tx - GOAL_X) + Math.abs(ty - GOAL_Y);
+  let score = scoreAiPosition(p.x, p.y, centerHeight);
+  score += targetDist * 28;
+  score += Math.max(0, game.heights[tx][ty] - 1) * 5;
+  if (tx === GOAL_X && ty === GOAL_Y) score -= 260;
+  if (targetDist === 1) score -= 26;
+  if (self && (p.x !== GOAL_X || p.y !== GOAL_Y)) score += 900;
+  if (p.x === GOAL_X && p.y === GOAL_Y && centerHeight === 0) score -= 10000;
+  return score;
+}
+
+function shouldAiDigSelf(p) {
+  if (!isMarkedHere(p) || getZ(p) <= 0) return false;
+  if (p.x === GOAL_X && p.y === GOAL_Y) return true;
+  return false;
+}
+
+function scoreAiPosition(x, y, centerHeight) {
+  const dist = Math.abs(x - GOAL_X) + Math.abs(y - GOAL_Y);
+  let score = dist * 95 + centerHeight * 62;
+  if (dist === 0) score -= 180;
+  if (dist === 1) score -= 45;
+  score += Math.abs(game.heights[x][y] - game.heights[GOAL_X][GOAL_Y]) * 7;
+  return score;
+}
+
+function countFutureMoves(x, y) {
+  let count = 0;
+  const h = game.heights[x][y];
+  for (let d = 0; d < MOVE_DX.length; d++) {
+    const tx = x + MOVE_DX[d], ty = y + MOVE_DY[d];
+    if (!inBounds(tx, ty) || cellHasPlayer(tx, ty)) continue;
+    if (Math.abs(h - game.heights[tx][ty]) <= 1) count++;
+  }
+  return count;
 }
 
 function cellToWorld(x, y, height = 0) {
@@ -559,28 +698,9 @@ function rebuildScene() {
     });
   }
 
-  drawGround();
   drawBlocks();
   drawMarkers();
   drawPlayers();
-}
-
-function drawGround() {
-  const base = new THREE.Mesh(
-    new THREE.BoxGeometry(GRID * CELL + 0.9, 0.18, GRID * CELL + 0.9),
-    mats.ground
-  );
-  base.position.set(0, -0.18, 0);
-  base.receiveShadow = true;
-  world.add(base);
-
-  const top = new THREE.Mesh(
-    new THREE.BoxGeometry(GRID * CELL + 0.46, 0.08, GRID * CELL + 0.46),
-    mats.groundTop
-  );
-  top.position.set(0, -0.04, 0);
-  top.receiveShadow = true;
-  world.add(top);
 }
 
 function drawBlocks() {
@@ -589,7 +709,11 @@ function drawBlocks() {
       const h = game.heights[x][y];
       if (h <= 0) continue;
       const geom = new THREE.BoxGeometry(CELL - GAP, h * SLAB_H, CELL - GAP);
-      const mat = isOccludingPlayer(x, y) ? mats.blockGhost : mats.block;
+      const isGoal = x === GOAL_X && y === GOAL_Y;
+      const ghostedByPlayer = isOccludingPlayer(x, y);
+      const mat = isGoal
+        ? (ghostedByPlayer ? mats.goalBlockGhost : mats.goalBlock)
+        : (ghostedByPlayer ? mats.blockGhost : mats.block);
       const mesh = new THREE.Mesh(geom, mat);
       const pos = cellToWorld(x, y, h * SLAB_H / 2);
       const shake = game.shakeCell && game.shakeCell.x === x && game.shakeCell.y === y && performance.now() < game.shakeUntil
@@ -609,7 +733,39 @@ function drawBlocks() {
       edges.position.copy(mesh.position);
       world.add(edges);
 
+      drawBlockOutlineBars(x, y, h, ghosted);
       drawLevelLines(x, y, h, ghosted);
+    }
+  }
+}
+
+function drawBlockOutlineBars(x, y, h, ghosted) {
+  const base = cellToWorld(x, y, 0);
+  const size = CELL - GAP;
+  const half = size / 2;
+  const thick = 0.008;
+  const mat = ghosted ? mats.outlineGhost : mats.outline;
+  const topY = h * SLAB_H + thick * 0.5;
+  const midY = h * SLAB_H * 0.5;
+
+  const edgeSpecs = [
+    [size + thick, thick, thick, base.x, topY, base.z - half],
+    [size + thick, thick, thick, base.x, topY, base.z + half],
+    [thick, thick, size + thick, base.x - half, topY, base.z],
+    [thick, thick, size + thick, base.x + half, topY, base.z]
+  ];
+
+  for (const [w, hh, d, px, py, pz] of edgeSpecs) {
+    const bar = new THREE.Mesh(new THREE.BoxGeometry(w, hh, d), mat);
+    bar.position.set(px, py, pz);
+    world.add(bar);
+  }
+
+  for (const sx of [-half, half]) {
+    for (const sz of [-half, half]) {
+      const post = new THREE.Mesh(new THREE.BoxGeometry(thick, h * SLAB_H, thick), mat);
+      post.position.set(base.x + sx, midY, base.z + sz);
+      world.add(post);
     }
   }
 }
@@ -618,6 +774,8 @@ function drawLevelLines(x, y, h, ghosted) {
   const base = cellToWorld(x, y, 0);
   const half = (CELL - GAP) / 2;
   const mat = ghosted ? mats.levelGhost : mats.level;
+  const barMat = ghosted ? mats.outlineGhost : mats.outline;
+  const thick = 0.004;
   for (let i = 1; i < h; i++) {
     const yy = i * SLAB_H;
     const pts = [
@@ -628,6 +786,17 @@ function drawLevelLines(x, y, h, ghosted) {
       new THREE.Vector3(base.x - half, yy, base.z - half)
     ];
     world.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), mat));
+
+    for (const sz of [-half, half]) {
+      const bar = new THREE.Mesh(new THREE.BoxGeometry(CELL - GAP, thick, thick), barMat);
+      bar.position.set(base.x, yy, base.z + sz);
+      world.add(bar);
+    }
+    for (const sx of [-half, half]) {
+      const bar = new THREE.Mesh(new THREE.BoxGeometry(thick, thick, CELL - GAP), barMat);
+      bar.position.set(base.x + sx, yy, base.z);
+      world.add(bar);
+    }
   }
 }
 
@@ -656,14 +825,6 @@ function drawMarkers() {
   for (const p of game.players) {
     if (p.marked) drawCellPlate(p.marked.x, p.marked.y, p.id === 0 ? mats.cyanGhost : mats.magentaGhost, 0.028);
   }
-  drawCellPlate(GOAL_X, GOAL_Y, mats.goal, 0.038, true);
-
-  if (game.hover) {
-    const p = game.players[game.current];
-    if (game.hover.type === 'move') drawCellPlate(game.hover.tx, game.hover.ty, mats.cyanGhost, 0.06);
-    if (game.hover.type === 'dig-cell') drawCellPlate(game.hover.tx, game.hover.ty, mats.magentaGhost, 0.06);
-    if (game.hover.type === 'dig-self') drawCellPlate(p.x, p.y, mats.magentaGhost, 0.06);
-  }
 }
 
 function drawCellPlate(x, y, mat, lift, smaller) {
@@ -678,74 +839,296 @@ function drawCellPlate(x, y, mat, lift, smaller) {
   world.add(mesh);
 }
 
+function drawActionHint(x, y) {
+  const options = getCellOptions(x, y);
+  if (!options.move && !options.dig) return;
+  const active = game.hoverCell && game.hoverCell.x === x && game.hoverCell.y === y ? game.hoverZone : null;
+
+  if (options.move && options.dig) {
+    drawActionHalfPlate(x, y, 'move', active === 'move');
+    drawActionHalfPlate(x, y, 'dig', active === 'dig');
+    drawTrackIcon(x, y, -0.22, active === 'move');
+    drawShovelIcon(x, y, 0.22, active === 'dig');
+    return;
+  }
+
+  drawActionFullPlate(x, y, options.move ? mats.moveHintActive : mats.digHintActive);
+  if (options.move) drawTrackIcon(x, y, 0, true);
+  if (options.dig) drawShovelIcon(x, y, 0, true);
+}
+
+function getCellOptions(x, y) {
+  if (game.state !== 'playing' || (game.mode === 'ai' && game.current === 1)) return { move: false, dig: false };
+  const p = game.players[game.current];
+  const own = x === p.x && y === p.y;
+  return {
+    move: !own && isMoveAdjacent(p.x, p.y, x, y) && canMoveTo(p, x, y),
+    dig: own
+      ? isMarkedHere(p) && getZ(p) > 0
+      : isMarkedHere(p) && isDigAdjacent(p.x, p.y, x, y) && canDigCell(x, y, p)
+  };
+}
+
+function drawActionFullPlate(x, y, mat) {
+  const h = game.heights[x][y];
+  const geom = new THREE.PlaneGeometry(CELL * 0.78, CELL * 0.78);
+  const mesh = new THREE.Mesh(geom, mat);
+  mesh.rotation.x = -Math.PI / 2;
+  mesh.position.copy(cellToWorld(x, y, h * SLAB_H + 0.032));
+  mesh.userData = { kind: 'cell', x, y };
+  world.add(mesh);
+}
+
+function drawActionHalfPlate(x, y, type, active) {
+  const h = game.heights[x][y];
+  const mat = type === 'move'
+    ? (active ? mats.moveHintActive : mats.moveHint)
+    : (active ? mats.digHintActive : mats.digHint);
+  const geom = new THREE.PlaneGeometry(CELL * 0.76, CELL * 0.34);
+  const mesh = new THREE.Mesh(geom, mat);
+  const offsetZ = type === 'move' ? -CELL * 0.2 : CELL * 0.2;
+  const pos = cellToWorld(x, y, h * SLAB_H + 0.034);
+  mesh.rotation.x = -Math.PI / 2;
+  mesh.position.set(pos.x, pos.y, pos.z + offsetZ);
+  mesh.userData = { kind: 'cell', x, y };
+  world.add(mesh);
+}
+
+function drawTrackIcon(x, y, offsetZ, active) {
+  const h = game.heights[x][y];
+  const base = cellToWorld(x, y, h * SLAB_H + 0.04);
+  const mat = active ? mats.decalInk : mats.outline;
+  for (const z of [-0.06, 0.06]) {
+    const rail = new THREE.Mesh(new THREE.PlaneGeometry(0.42, 0.028), mat);
+    rail.rotation.x = -Math.PI / 2;
+    rail.position.set(base.x, base.y, base.z + offsetZ + z);
+    world.add(rail);
+    for (let i = -2; i <= 2; i++) {
+      const tread = new THREE.Mesh(new THREE.PlaneGeometry(0.028, 0.08), mat);
+      tread.rotation.x = -Math.PI / 2;
+      tread.position.set(base.x + i * 0.085, base.y + 0.004, base.z + offsetZ + z);
+      world.add(tread);
+    }
+  }
+}
+
+function drawShovelIcon(x, y, offsetZ, active) {
+  const h = game.heights[x][y];
+  const base = cellToWorld(x, y, h * SLAB_H + 0.04);
+  const mat = active ? mats.decalInk : mats.outline;
+  const handle = new THREE.Mesh(new THREE.PlaneGeometry(0.34, 0.028), mat);
+  handle.rotation.x = -Math.PI / 2;
+  handle.rotation.z = -0.5;
+  handle.position.set(base.x - 0.03, base.y, base.z + offsetZ);
+  world.add(handle);
+
+  const scoop = new THREE.Mesh(new THREE.CircleGeometry(0.1, 18, Math.PI * 0.1, Math.PI * 0.8), mat);
+  scoop.rotation.x = -Math.PI / 2;
+  scoop.rotation.z = -0.5;
+  scoop.scale.set(1.15, 0.72, 1);
+  scoop.position.set(base.x + 0.18, base.y + 0.006, base.z + offsetZ - 0.08);
+  world.add(scoop);
+}
+
+function addBeamBetween(group, a, b, height, depth, mat) {
+  const dx = b.x - a.x;
+  const dy = b.y - a.y;
+  const len = Math.hypot(dx, dy);
+  const beam = new THREE.Mesh(new THREE.BoxGeometry(len, height, depth), mat);
+  beam.position.set((a.x + b.x) / 2, (a.y + b.y) / 2, (a.z + b.z) / 2);
+  beam.rotation.z = Math.atan2(dy, dx);
+  beam.castShadow = true;
+  group.add(beam);
+  addMeshOutline(group, beam);
+  return beam;
+}
+
+function addRodBetween(group, a, b, radius, mat) {
+  const start = new THREE.Vector3(a.x, a.y, a.z);
+  const end = new THREE.Vector3(b.x, b.y, b.z);
+  const diff = end.clone().sub(start);
+  const rod = new THREE.Mesh(new THREE.CylinderGeometry(radius, radius, diff.length(), 10), mat);
+  rod.position.copy(start.clone().add(end).multiplyScalar(0.5));
+  rod.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), diff.normalize());
+  rod.castShadow = true;
+  group.add(rod);
+  addMeshOutline(group, rod, 28);
+  return rod;
+}
+
+function addMeshOutline(group, mesh, threshold = 20) {
+  const outline = new THREE.LineSegments(new THREE.EdgesGeometry(mesh.geometry, threshold), mats.edge);
+  outline.position.copy(mesh.position);
+  outline.rotation.copy(mesh.rotation);
+  outline.scale.copy(mesh.scale);
+  group.add(outline);
+  return outline;
+}
+
 function drawPlayers() {
   for (const p of game.players) {
     const g = new THREE.Group();
-    const h = getZ(p);
-    const pos = cellToWorld(p.x, p.y, h * SLAB_H + 0.04);
+    const visual = getVisualPlayerPose(p);
+    const pos = cellToWorld(visual.x, visual.y, visual.h * SLAB_H + 0.04);
     g.position.copy(pos);
-    g.rotation.y = p.dir || 0;
+    g.rotation.y = visual.dir;
     g.userData = { kind: 'player', id: p.id };
 
     const topMat = p.id === 0 ? mats.p1 : mats.p2;
     const darkMat = p.id === 0 ? mats.p1Dark : mats.p2Dark;
 
-    const tracks = new THREE.Mesh(new THREE.BoxGeometry(0.72, 0.13, 0.46), mats.rubber);
-    tracks.position.y = 0.06;
-    tracks.castShadow = true;
-    tracks.receiveShadow = true;
-    g.add(tracks);
+    const chassis = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.055, 0.34), mats.metalDark);
+    chassis.position.y = 0.19;
+    chassis.castShadow = true;
+    chassis.receiveShadow = true;
+    g.add(chassis);
+    addMeshOutline(g, chassis);
 
     for (const sx of [-0.23, 0.23]) {
-      for (let i = -2; i <= 2; i++) {
-        const tread = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.025, 0.5), mats.black);
-        tread.position.set(i * 0.12, 0.14, sx);
+      const track = new THREE.Mesh(new THREE.BoxGeometry(0.82, 0.15, 0.2), mats.rubber);
+      track.position.set(0, 0.075, sx);
+      track.castShadow = true;
+      track.receiveShadow = true;
+      g.add(track);
+      addMeshOutline(g, track);
+
+      const trackCap = new THREE.Mesh(new THREE.BoxGeometry(0.76, 0.035, 0.215), mats.black);
+      trackCap.position.set(0, 0.165, sx);
+      trackCap.castShadow = true;
+      g.add(trackCap);
+      addMeshOutline(g, trackCap);
+
+      for (let i = -3; i <= 3; i++) {
+        const tread = new THREE.Mesh(new THREE.BoxGeometry(0.065, 0.035, 0.225), mats.black);
+        tread.position.set(i * 0.108, 0.18, sx);
         tread.castShadow = true;
         g.add(tread);
       }
+
+      for (const wx of [-0.29, 0, 0.29]) {
+        const wheel = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.055, 0.205, 14), mats.metalLight);
+        wheel.position.set(wx, 0.075, sx);
+        wheel.rotation.x = Math.PI / 2;
+        wheel.castShadow = true;
+        g.add(wheel);
+        addMeshOutline(g, wheel, 28);
+      }
     }
 
-    const body = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.24, 0.36), topMat);
-    body.position.y = 0.25;
-    body.castShadow = true;
-    body.receiveShadow = true;
-    g.add(body);
-
     const upper = new THREE.Group();
-    upper.position.y = 0.45;
+    upper.position.y = 0.3;
     upper.rotation.y = getTurretRotation(p, g.rotation.y);
     g.add(upper);
 
-    const turret = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.23, 0.12, 12), darkMat);
+    const turret = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.25, 0.105, 16), darkMat);
+    turret.position.y = 0.02;
     turret.castShadow = true;
     upper.add(turret);
+    addMeshOutline(upper, turret, 28);
 
-    const cab = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.32, 0.3), topMat);
-    cab.position.set(-0.05, 0.21, -0.02);
+    const counterweight = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.26, 0.34), darkMat);
+    counterweight.position.set(-0.22, 0.2, 0);
+    counterweight.castShadow = true;
+    counterweight.receiveShadow = true;
+    upper.add(counterweight);
+    addMeshOutline(upper, counterweight);
+
+    const engine = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.22, 0.32), topMat);
+    engine.position.set(-0.05, 0.2, 0);
+    engine.castShadow = true;
+    engine.receiveShadow = true;
+    upper.add(engine);
+    addMeshOutline(upper, engine);
+
+    const cab = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.32, 0.28), topMat);
+    cab.position.set(0.17, 0.25, -0.035);
     cab.castShadow = true;
     cab.receiveShadow = true;
     upper.add(cab);
+    addMeshOutline(upper, cab);
 
-    const windowFront = new THREE.Mesh(new THREE.BoxGeometry(0.012, 0.11, 0.18), mats.window);
-    windowFront.position.set(0.106, 0.27, -0.02);
+    const roof = new THREE.Mesh(new THREE.BoxGeometry(0.31, 0.045, 0.34), darkMat);
+    roof.position.set(0.17, 0.43, -0.035);
+    roof.castShadow = true;
+    upper.add(roof);
+    addMeshOutline(upper, roof);
+
+    const windowFront = new THREE.Mesh(new THREE.BoxGeometry(0.014, 0.15, 0.18), mats.window);
+    windowFront.position.set(0.303, 0.29, -0.035);
     upper.add(windowFront);
 
-    const windowSide = new THREE.Mesh(new THREE.BoxGeometry(0.012, 0.11, 0.16), mats.window);
-    windowSide.position.set(-0.206, 0.27, -0.02);
+    const windowSide = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.13, 0.014), mats.windowDark);
+    windowSide.position.set(0.16, 0.3, -0.183);
     upper.add(windowSide);
 
-    const activeDigTarget = getActiveDigTarget(p);
-    const reach = activeDigTarget && !(activeDigTarget.x === p.x && activeDigTarget.y === p.y) ? 0.72 : 0.48;
-    const arm = new THREE.Mesh(new THREE.BoxGeometry(reach, 0.09, 0.08), darkMat);
-    arm.position.set(0.18 + reach / 2, 0.38 - reach * 0.14, 0.02);
-    arm.rotation.z = -0.28;
-    arm.castShadow = true;
-    upper.add(arm);
+    const vent = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.04, 0.012), mats.p1Dark);
+    vent.material = darkMat;
+    vent.position.set(-0.08, 0.24, 0.166);
+    upper.add(vent);
+    addMeshOutline(upper, vent);
 
-    const bucket = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.12, 0.16), mats.grey);
-    bucket.position.set(0.32 + reach, 0.23 - reach * 0.28, 0.04);
+    const activeDigTarget = getActiveDigTarget(p);
+    const arm = getArmPose(p, activeDigTarget);
+    const reach = arm.reach;
+    const pivotX = 0.31;
+    const pivotY = 0.26;
+
+    const boomBase = new THREE.Mesh(new THREE.CylinderGeometry(0.065, 0.065, 0.11, 14), mats.metalLight);
+    boomBase.position.set(pivotX, pivotY, 0.03);
+    boomBase.rotation.x = Math.PI / 2;
+    boomBase.castShadow = true;
+    upper.add(boomBase);
+    addMeshOutline(upper, boomBase, 28);
+
+    const boomStart = { x: pivotX + 0.03, y: pivotY, z: 0.03 };
+    const elbow = { x: pivotX + reach * 0.54, y: pivotY + arm.hingeY, z: 0.03 };
+    const bucketJoint = { x: pivotX + reach * 0.95, y: pivotY + arm.bucketY + 0.08, z: 0.03 };
+    addBeamBetween(upper, boomStart, elbow, 0.085, 0.075, darkMat);
+    addBeamBetween(upper, elbow, bucketJoint, 0.07, 0.065, darkMat);
+    addRodBetween(
+      upper,
+      { x: pivotX - 0.04, y: pivotY - 0.035, z: -0.045 },
+      { x: pivotX + reach * 0.44, y: pivotY + arm.hingeY + 0.04, z: -0.045 },
+      0.014,
+      mats.hydraulic
+    );
+    addRodBetween(
+      upper,
+      { x: elbow.x - 0.03, y: elbow.y + 0.035, z: 0.09 },
+      { x: bucketJoint.x - 0.06, y: bucketJoint.y + 0.02, z: 0.09 },
+      0.012,
+      mats.hydraulic
+    );
+
+    const hinge = new THREE.Mesh(new THREE.SphereGeometry(0.055, 12, 8), mats.metalLight);
+    hinge.position.set(elbow.x, elbow.y, elbow.z);
+    hinge.castShadow = true;
+    upper.add(hinge);
+    addMeshOutline(upper, hinge, 28);
+
+    const bucketHinge = new THREE.Mesh(new THREE.SphereGeometry(0.045, 12, 8), mats.metalLight);
+    bucketHinge.position.set(bucketJoint.x, bucketJoint.y, bucketJoint.z);
+    bucketHinge.castShadow = true;
+    upper.add(bucketHinge);
+    addMeshOutline(upper, bucketHinge, 28);
+
+    const bucketGeom = new THREE.ConeGeometry(0.205, 0.28, 4);
+    const bucket = new THREE.Mesh(bucketGeom, topMat);
+    bucket.position.set(bucketJoint.x + 0.115, bucketJoint.y - 0.11, 0.055);
+    bucket.rotation.set(arm.bucketRot, 0, Math.PI / 4);
     bucket.castShadow = true;
     upper.add(bucket);
+
+    addMeshOutline(upper, bucket);
+
+    for (const tz of [-0.085, -0.028, 0.028, 0.085]) {
+      const tooth = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.035, 0.02), mats.metalDark);
+      tooth.position.set(bucketJoint.x + 0.225, bucketJoint.y - 0.195, tz + 0.055);
+      tooth.rotation.z = -0.42;
+      tooth.castShadow = true;
+      upper.add(tooth);
+      addMeshOutline(upper, tooth);
+    }
 
     if (game.state === 'playing' && p.id === game.current) {
       const marker = new THREE.Mesh(new THREE.ConeGeometry(0.14, 0.25, 3), mats.goal);
@@ -756,6 +1139,79 @@ function drawPlayers() {
 
     world.add(g);
   }
+}
+
+function getVisualPlayerPose(p) {
+  const anim = p.moveAnim;
+  const now = performance.now();
+  if (!anim || now >= anim.until) {
+    if (anim) p.moveAnim = null;
+    return { x: p.x, y: p.y, h: getZ(p), dir: p.dir || 0 };
+  }
+
+  const t = easeInOut((now - anim.start) / (anim.until - anim.start));
+  return {
+    x: anim.fromX + (anim.toX - anim.fromX) * t,
+    y: anim.fromY + (anim.toY - anim.fromY) * t,
+    h: anim.fromH + (anim.toH - anim.fromH) * t,
+    dir: anim.fromDir + normalizeAngle(anim.toDir - anim.fromDir) * t
+  };
+}
+
+function getArmPose(p, target) {
+  if (!target) {
+    return isMarkedHere(p)
+      ? {
+          reach: 0.66,
+          boomY: -0.08,
+          stickY: -0.24,
+          hingeY: -0.16,
+          bucketY: -0.36,
+          boomRot: -0.24,
+          stickRot: -0.56,
+          bucketRot: Math.PI * 0.74
+        }
+      : {
+          reach: 0.4,
+          boomY: 0.02,
+          stickY: -0.06,
+          hingeY: -0.02,
+          bucketY: -0.16,
+          boomRot: -0.06,
+          stickRot: -0.22,
+          bucketRot: Math.PI * 0.62
+        };
+  }
+  const sameCell = target.x === p.x && target.y === p.y;
+  const maxReach = sameCell ? 0.54 : 0.78;
+  const maxPose = {
+    reach: maxReach,
+    boomY: -0.1,
+    stickY: -0.31,
+    hingeY: -0.22,
+    bucketY: -0.48,
+    boomRot: -0.33,
+    stickRot: -0.72,
+    bucketRot: Math.PI * 0.78
+  };
+  if (!p.digTarget || performance.now() >= p.digTarget.until) return maxPose;
+  const t = (performance.now() - p.digTarget.start) / (p.digTarget.until - p.digTarget.start);
+  const bite = Math.sin(Math.max(0, Math.min(1, t)) * Math.PI);
+  return {
+    reach: 0.48 + (maxReach - 0.48) * bite,
+    boomY: -0.02 + (maxPose.boomY + 0.02) * bite,
+    stickY: -0.12 + (maxPose.stickY + 0.12) * bite,
+    hingeY: -0.06 + (maxPose.hingeY + 0.06) * bite,
+    bucketY: -0.22 + (maxPose.bucketY + 0.22) * bite,
+    boomRot: -0.16 + (maxPose.boomRot + 0.16) * bite,
+    stickRot: -0.36 + (maxPose.stickRot + 0.36) * bite,
+    bucketRot: Math.PI * (0.68 + 0.1 * bite)
+  };
+}
+
+function easeInOut(t) {
+  const clamped = Math.max(0, Math.min(1, t));
+  return clamped * clamped * (3 - 2 * clamped);
 }
 
 function getActiveDigTarget(p) {
@@ -770,14 +1226,21 @@ function getActiveDigTarget(p) {
 }
 
 function getTurretRotation(p, baseRotation) {
-  const target = getActiveDigTarget(p);
+  const target = getTurretTarget(p);
   if (!target || (target.x === p.x && target.y === p.y)) return 0;
   return normalizeAngle(angleToCell(p.x, p.y, target.x, target.y) - baseRotation);
 }
 
-function pickAction(clientX, clientY) {
-  if (game.state !== 'playing') return null;
-  if (game.mode === 'ai' && game.current === 1) return null;
+function getTurretTarget(p) {
+  const activeDigTarget = getActiveDigTarget(p);
+  if (activeDigTarget) return activeDigTarget;
+  if (game.state === 'playing' && p.id === game.current && game.hoverCell) {
+    return game.hoverCell;
+  }
+  return null;
+}
+
+function pickCell(clientX, clientY) {
   const rect = renderer.domElement.getBoundingClientRect();
   pointerNdc.x = ((clientX - rect.left) / rect.width) * 2 - 1;
   pointerNdc.y = -(((clientY - rect.top) / rect.height) * 2 - 1);
@@ -785,15 +1248,30 @@ function pickAction(clientX, clientY) {
   const hits = raycaster.intersectObjects(world.children, true);
   const hit = hits.find(h => h.object.userData && h.object.userData.kind === 'cell');
   if (!hit) return null;
-
-  const p = game.players[game.current];
   const { x, y } = hit.object.userData;
-  if (x === p.x && y === p.y) {
-    if (isMarkedHere(p) && getZ(p) > 0) return { type: 'dig-self' };
-  } else if (isMarkedHere(p) && isDigAdjacent(p.x, p.y, x, y) && canDigCell(x, y, p)) {
-    return { type: 'dig-cell', tx: x, ty: y };
-  } else if (isMoveAdjacent(p.x, p.y, x, y) && canMoveTo(p, x, y)) {
-    return { type: 'move', tx: x, ty: y };
+  const center = cellToWorld(x, y, 0);
+  return { x, y, localZ: hit.point.z - center.z };
+}
+
+function pickAction(clientX, clientY, intent = 'move') {
+  if (game.state !== 'playing') return null;
+  if (game.mode === 'ai' && game.current === 1) return null;
+  const cell = pickCell(clientX, clientY);
+  if (!cell) return null;
+  const p = game.players[game.current];
+  const { x, y } = cell;
+  if (intent === 'dig') {
+    if (x === p.x && y === p.y) {
+      if (isMarkedHere(p) && getZ(p) > 0) return { type: 'dig-self' };
+    } else if (isMarkedHere(p) && isDigAdjacent(p.x, p.y, x, y) && canDigCell(x, y, p)) {
+      return { type: 'dig-cell', tx: x, ty: y };
+    }
+    return null;
+  }
+  if (x !== p.x || y !== p.y) {
+    if (isMoveAdjacent(p.x, p.y, x, y) && canMoveTo(p, x, y)) {
+      return { type: 'move', tx: x, ty: y };
+    }
   }
   return null;
 }
@@ -806,39 +1284,111 @@ function performAction(action) {
 }
 
 function updateHover(clientX, clientY) {
-  const action = pickAction(clientX, clientY);
-  const same = (!action && !game.hover) ||
+  const cell = pickCell(clientX, clientY);
+  const options = cell ? getCellOptions(cell.x, cell.y) : { move: false, dig: false };
+  const zone = cell ? getHoverZone(cell, options) : null;
+  const action = cell && zone === 'dig'
+    ? pickAction(clientX, clientY, 'dig')
+    : cell && zone === 'move'
+      ? pickAction(clientX, clientY, 'move')
+      : cell
+        ? pickAction(clientX, clientY, 'move') || pickAction(clientX, clientY, 'dig')
+        : null;
+  const sameCell = (!cell && !game.hoverCell) ||
+    (cell && game.hoverCell && cell.x === game.hoverCell.x && cell.y === game.hoverCell.y);
+  const sameZone = zone === game.hoverZone;
+  const sameAction = (!action && !game.hover) ||
     (action && game.hover && action.type === game.hover.type && action.tx === game.hover.tx && action.ty === game.hover.ty);
-  if (!same) {
+  if (!sameCell || !sameZone || !sameAction) {
+    game.hoverCell = cell;
+    game.hoverZone = zone;
     game.hover = action;
     rebuildScene();
   }
 }
 
+function getHoverZone(cell, options) {
+  if (options.move && options.dig) return cell.localZ < 0 ? 'move' : 'dig';
+  if (options.move) return 'move';
+  if (options.dig) return 'dig';
+  return null;
+}
+
 function updateCamera() {
+  fitCameraToBoard();
+}
+
+function setCameraPose(radius) {
+  cameraRadius = radius;
+  cameraElevation = radius * (CAMERA_ELEVATION / CAMERA_RADIUS);
   camera.position.set(
-    Math.sin(cameraAngle) * CAMERA_RADIUS,
-    CAMERA_ELEVATION,
-    Math.cos(cameraAngle) * CAMERA_RADIUS
+    Math.sin(cameraAngle) * cameraRadius,
+    cameraElevation,
+    Math.cos(cameraAngle) * cameraRadius
   );
   camera.lookAt(BOARD_CENTER);
+  camera.updateMatrixWorld();
+}
+
+function fitCameraToBoard(force = false) {
+  if (!force && cameraAngle === lastFitAngle && camera.aspect === lastFitAspect) return;
+
+  let low = CAMERA_RADIUS;
+  let high = CAMERA_RADIUS;
+  setCameraPose(high);
+
+  for (let i = 0; i < 32 && !cameraFitsBoard(); i++) {
+    low = high;
+    high *= 1.08;
+    setCameraPose(high);
+  }
+
+  if (high > CAMERA_RADIUS) {
+    for (let i = 0; i < 18; i++) {
+      const mid = (low + high) / 2;
+      setCameraPose(mid);
+      if (cameraFitsBoard()) high = mid;
+      else low = mid;
+    }
+  }
+
+  setCameraPose(high);
+  lastFitAngle = cameraAngle;
+  lastFitAspect = camera.aspect;
+}
+
+function cameraFitsBoard() {
+  return BOARD_FIT_POINTS.every(point => {
+    const projected = point.clone().project(camera);
+    return Math.abs(projected.x) <= 0.9 && Math.abs(projected.y) <= 0.88;
+  });
 }
 
 function resize() {
-  const w = stage.clientWidth;
-  const h = stage.clientHeight;
-  camera.aspect = w / h;
+  const w = Math.max(1, stage.clientWidth);
+  const h = Math.max(1, stage.clientHeight);
+  const aspect = w / h;
+  camera.aspect = aspect;
   camera.updateProjectionMatrix();
   renderer.setSize(w, h);
+  fitCameraToBoard(true);
 }
 
 function updateHud() {
-  document.getElementById('p1text').textContent = 'P1 z=' + getZ(game.players[0]);
-  document.getElementById('p1badge').className = 'pbadge p1' + (game.current === 0 && game.state === 'playing' ? ' active' : '');
-  const p2name = game.mode === 'ai' ? 'CPU' : 'P2';
-  document.getElementById('p2text').textContent = p2name + ' z=' + getZ(game.players[1]);
-  document.getElementById('p2badge').className = 'pbadge p2' + (game.current === 1 && game.state === 'playing' ? ' active' : '');
-  document.getElementById('message').textContent = game.message;
+  updatePlayerBadge(0);
+  updatePlayerBadge(1);
+}
+
+function updatePlayerBadge(id) {
+  const player = game.players[id];
+  const active = game.current === id && game.state === 'playing';
+  const canMove = active && hasAnyMove(player);
+  const canDig = active && hasAnyDig(player);
+  const badge = document.getElementById(id === 0 ? 'p1badge' : 'p2badge');
+  badge.className = 'pbadge p' + (id + 1)
+    + (active ? ' active' : '')
+    + (canMove ? ' can-move' : '')
+    + (canDig ? ' can-dig' : '');
 }
 
 function showGameOver() {
@@ -871,8 +1421,17 @@ function showGameOver() {
 
 function animate() {
   updateCamera();
+  if (hasActiveVisualAnimation()) rebuildScene();
   renderer.render(scene, camera);
   requestAnimationFrame(animate);
+}
+
+function hasActiveVisualAnimation() {
+  const now = performance.now();
+  return game.players.some(p =>
+    (p.moveAnim && now < p.moveAnim.until) ||
+    (p.digTarget && now < p.digTarget.until)
+  );
 }
 
 renderer.domElement.addEventListener('pointerdown', e => {
@@ -906,12 +1465,14 @@ renderer.domElement.addEventListener('pointerup', e => {
   if (!drag || drag.id !== e.pointerId) return;
   const wasTap = !drag.moved;
   drag = null;
-  if (wasTap) performAction(pickAction(e.clientX, e.clientY));
+  if (wasTap) handleTap(e.clientX, e.clientY);
 });
 renderer.domElement.addEventListener('pointercancel', () => { drag = null; });
 renderer.domElement.addEventListener('pointerleave', () => {
-  if (!drag && game.hover) {
+  if (!drag && (game.hover || game.hoverCell)) {
     game.hover = null;
+    game.hoverCell = null;
+    game.hoverZone = null;
     rebuildScene();
   }
 });
@@ -920,6 +1481,29 @@ window.addEventListener('resize', resize);
 document.getElementById('hotseatBtn').addEventListener('click', () => startGame('hotseat'));
 document.getElementById('aiBtn').addEventListener('click', () => startGame('ai'));
 document.getElementById('newGameBtn').addEventListener('click', backToMenu);
+
+function handleTap(clientX, clientY) {
+  const now = performance.now();
+  const nearLast = lastTap &&
+    now - lastTap.time <= DOUBLE_TAP_MS &&
+    Math.hypot(clientX - lastTap.x, clientY - lastTap.y) <= DOUBLE_TAP_DIST;
+
+  if (nearLast) {
+    clearTimeout(tapTimer);
+    tapTimer = null;
+    lastTap = null;
+    performAction(pickAction(clientX, clientY, 'dig'));
+    return;
+  }
+
+  lastTap = { x: clientX, y: clientY, time: now };
+  clearTimeout(tapTimer);
+  tapTimer = setTimeout(() => {
+    performAction(pickAction(clientX, clientY, 'move'));
+    tapTimer = null;
+    lastTap = null;
+  }, DOUBLE_TAP_MS);
+}
 
 resize();
 updateCamera();

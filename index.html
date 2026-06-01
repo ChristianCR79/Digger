@@ -29,6 +29,7 @@
     -webkit-user-select: none;
   }
   #wrap {
+    position: relative;
     display: flex;
     flex-direction: column;
     min-height: 100vh;
@@ -57,6 +58,33 @@
     width: min(154px, 42vw);
     height: auto;
     margin: 0 auto;
+  }
+  .icon-btn {
+    width: 34px;
+    height: 34px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 2px solid var(--ink);
+    border-radius: 50%;
+    background: var(--yellow);
+    color: var(--ink);
+    box-shadow: 3px 3px 0 var(--ink);
+    font-family: inherit;
+    font-size: 18px;
+    font-weight: 900;
+    cursor: pointer;
+  }
+  .icon-btn:active {
+    transform: translate(2px, 2px);
+    box-shadow: 1px 1px 0 var(--ink);
+  }
+  #infoBtn {
+    position: absolute;
+    top: 6px;
+    right: 8px;
+    z-index: 10;
   }
   #menu .brand-logo {
     width: min(360px, 78vw);
@@ -166,12 +194,60 @@
   .menu-btn.m:hover { background: var(--turquoise-d); color: var(--cream); }
   .menu-btn.y:hover { background: var(--yellow); color: var(--ink); }
   .hidden { display: none !important; }
+  #infoModal {
+    position: fixed;
+    inset: 0;
+    z-index: 130;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 18px;
+    background: rgba(247, 240, 220, 0.88);
+  }
+  .info-panel {
+    position: relative;
+    width: min(430px, 100%);
+    max-height: min(620px, 90dvh);
+    overflow: auto;
+    padding: 22px;
+    border: 3px solid var(--ink);
+    border-radius: 22px;
+    background: var(--cream);
+    box-shadow: 8px 9px 0 var(--ink);
+  }
+  .info-panel h2 {
+    margin: 0 44px 14px 0;
+    color: var(--turquoise);
+    font-size: 25px;
+    letter-spacing: 1px;
+    text-shadow: 2px 2px 0 var(--ink);
+  }
+  .info-panel h3 {
+    margin: 16px 0 6px;
+    color: var(--yellow-d);
+    font-size: 15px;
+    letter-spacing: 0.5px;
+  }
+  .info-panel p {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.45;
+  }
+  #closeInfoBtn {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    background: var(--turquoise);
+  }
 </style>
 </head>
 <body>
 
 <div id="wrap">
   <img class="brand-logo" src="digger_logo.svg" alt="Digger">
+  <button class="icon-btn" id="infoBtn" type="button" title="Spielinfo" aria-label="Spielinfo">i</button>
   <div id="hud">
     <div id="p1badge" class="pbadge p1">
       <span class="action-icons" aria-hidden="true">
@@ -199,6 +275,21 @@
   <h1 id="winnerText">SIEG</h1>
   <div class="menu-intro" id="winnerSub" style="margin: 4px 0 32px;"></div>
   <button class="menu-btn y" id="newGameBtn">NEUES SPIEL</button>
+</div>
+
+<div id="infoModal" class="hidden">
+  <div class="info-panel">
+    <button class="icon-btn" id="closeInfoBtn" type="button" title="Schliessen" aria-label="Schliessen">&times;</button>
+    <h2>SO SPIELST DU</h2>
+    <h3>ZIEL</h3>
+    <p>Gewinne, indem du als Erster den roten Block in der Mitte bis auf Ebene 0 herunterbaggerst und ihn mit deinem Bagger erreichst. Alternativ kannst du den Gegenspieler so festsetzen, dass er keinen gueltigen Zug mehr machen kann.</p>
+    <h3>FAHREN</h3>
+    <p>Einmal auf ein gerades Nachbarfeld tippen. Du darfst maximal eine Ebene Hoehenunterschied ueberwinden.</p>
+    <h3>BAGGERN</h3>
+    <p>Zweimal auf dein Feld oder ein Nachbarfeld tippen. Baggern ist auch diagonal moeglich. Vorher musst du mindestens einmal gefahren sein.</p>
+    <h3>ANZEIGE</h3>
+    <p>Oben siehst du nur die aktuell moeglichen Aktionen. Ziehen auf dem Spielfeld dreht die Kamera.</p>
+  </div>
 </div>
 
 <script type="importmap">
@@ -1481,6 +1572,15 @@ window.addEventListener('resize', resize);
 document.getElementById('hotseatBtn').addEventListener('click', () => startGame('hotseat'));
 document.getElementById('aiBtn').addEventListener('click', () => startGame('ai'));
 document.getElementById('newGameBtn').addEventListener('click', backToMenu);
+const infoModal = document.getElementById('infoModal');
+document.getElementById('infoBtn').addEventListener('click', () => infoModal.classList.remove('hidden'));
+document.getElementById('closeInfoBtn').addEventListener('click', () => infoModal.classList.add('hidden'));
+infoModal.addEventListener('click', e => {
+  if (e.target === infoModal) infoModal.classList.add('hidden');
+});
+window.addEventListener('keydown', e => {
+  if (e.key === 'Escape') infoModal.classList.add('hidden');
+});
 
 function handleTap(clientX, clientY) {
   const now = performance.now();

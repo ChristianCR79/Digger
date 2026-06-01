@@ -288,7 +288,7 @@
     <h3>BAGGERN</h3>
     <p>Zweimal auf dein Feld oder ein Nachbarfeld tippen. Baggern ist auch diagonal moeglich. Vorher musst du mindestens einmal gefahren sein.</p>
     <h3>ANZEIGE</h3>
-    <p>Oben siehst du nur die aktuell moeglichen Aktionen. Ziehen auf dem Spielfeld dreht die Kamera.</p>
+    <p>Oben siehst du nur die aktuell moeglichen Aktionen. Ziehen auf dem Spielfeld dreht die Kamera. Mit zwei Fingern kannst du auf Mobilgeraeten zoomen.</p>
   </div>
 </div>
 
@@ -334,8 +334,12 @@ const CAMERA_RADIUS = 7.2;
 const CAMERA_ELEVATION = 5.2;
 let cameraRadius = CAMERA_RADIUS;
 let cameraElevation = CAMERA_ELEVATION;
+let fittedCameraRadius = CAMERA_RADIUS;
+let cameraZoom = window.matchMedia('(max-width: 640px)').matches ? 0.9 : 1;
 let lastFitAngle = NaN;
 let lastFitAspect = NaN;
+const activePointers = new Map();
+let pinch = null;
 const BOARD_FIT_POINTS = [];
 for (const x of [-3.45, 3.45]) {
   for (const y of [-0.42, 3.18]) {
@@ -1421,8 +1425,15 @@ function setCameraPose(radius) {
   camera.updateMatrixWorld();
 }
 
+function applyCameraZoom() {
+  setCameraPose(fittedCameraRadius * cameraZoom);
+}
+
 function fitCameraToBoard(force = false) {
-  if (!force && cameraAngle === lastFitAngle && camera.aspect === lastFitAspect) return;
+  if (!force && cameraAngle === lastFitAngle && camera.aspect === lastFitAspect) {
+    applyCameraZoom();
+    return;
+  }
 
   let low = CAMERA_RADIUS;
   let high = CAMERA_RADIUS;
@@ -1443,7 +1454,8 @@ function fitCameraToBoard(force = false) {
     }
   }
 
-  setCameraPose(high);
+  fittedCameraRadius = high;
+  applyCameraZoom();
   lastFitAngle = cameraAngle;
   lastFitAspect = camera.aspect;
 }
@@ -1528,6 +1540,15 @@ function hasActiveVisualAnimation() {
 renderer.domElement.addEventListener('pointerdown', e => {
   e.preventDefault();
   renderer.domElement.setPointerCapture(e.pointerId);
+  activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (activePointers.size >= 2) {
+    pinch = {
+      startDistance: getPointerDistance(),
+      startZoom: cameraZoom
+    };
+    drag = null;
+    return;
+  }
   drag = {
     id: e.pointerId,
     startX: e.clientX,
@@ -1538,6 +1559,17 @@ renderer.domElement.addEventListener('pointerdown', e => {
 });
 
 renderer.domElement.addEventListener('pointermove', e => {
+  if (activePointers.has(e.pointerId)) {
+    activePointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  }
+  if (pinch && activePointers.size >= 2) {
+    const distance = getPointerDistance();
+    if (distance > 0) {
+      cameraZoom = Math.max(0.68, Math.min(1.5, pinch.startZoom * pinch.startDistance / distance));
+      applyCameraZoom();
+    }
+    return;
+  }
   if (drag && drag.id === e.pointerId) {
     const dx = e.clientX - drag.lastX;
     const total = Math.hypot(e.clientX - drag.startX, e.clientY - drag.startY);
@@ -1553,12 +1585,22 @@ renderer.domElement.addEventListener('pointermove', e => {
 });
 
 renderer.domElement.addEventListener('pointerup', e => {
+  activePointers.delete(e.pointerId);
+  if (pinch) {
+    if (activePointers.size < 2) pinch = null;
+    drag = null;
+    return;
+  }
   if (!drag || drag.id !== e.pointerId) return;
   const wasTap = !drag.moved;
   drag = null;
   if (wasTap) handleTap(e.clientX, e.clientY);
 });
-renderer.domElement.addEventListener('pointercancel', () => { drag = null; });
+renderer.domElement.addEventListener('pointercancel', e => {
+  activePointers.delete(e.pointerId);
+  if (activePointers.size < 2) pinch = null;
+  drag = null;
+});
 renderer.domElement.addEventListener('pointerleave', () => {
   if (!drag && (game.hover || game.hoverCell)) {
     game.hover = null;
@@ -1567,6 +1609,12 @@ renderer.domElement.addEventListener('pointerleave', () => {
     rebuildScene();
   }
 });
+
+function getPointerDistance() {
+  const pointers = [...activePointers.values()];
+  if (pointers.length < 2) return 0;
+  return Math.hypot(pointers[0].x - pointers[1].x, pointers[0].y - pointers[1].y);
+}
 
 window.addEventListener('resize', resize);
 document.getElementById('hotseatBtn').addEventListener('click', () => startGame('hotseat'));
